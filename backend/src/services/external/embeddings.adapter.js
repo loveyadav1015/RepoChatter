@@ -1,44 +1,38 @@
-import axios from 'axios';
+import { pipeline } from '@xenova/transformers';
 
-/**
- * Adapter for generating embeddings.
- * Separated from the Grok adapter because Grok does not currently expose an embeddings API.
- * This function can easily swap underlying providers (OpenAI, Voyage, local models)
- * without affecting the rest of the application.
- * 
- * @param {string} text - The text to embed.
- * @returns {Promise<number[]>} - The embedding vector.
- */
-export async function embedText(text) {
-  const provider = process.env.EMBEDDING_PROVIDER || 'openai';
-  const apiKey = process.env.EMBEDDING_API_KEY;
+let extractorInstance = null;
 
-  if (!apiKey) {
-    console.warn('EMBEDDING_API_KEY is not set. Returning dummy vector.');
-    return new Array(1536).fill(0.01);
+async function getExtractor() {
+  if (!extractorInstance) {
+    console.log('[Embeddings] Loading local model Xenova/all-MiniLM-L6-v2 (384 dims)...');
+    extractorInstance = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    console.log('[Embeddings] Local model loaded successfully.');
   }
+  return extractorInstance;
+}
 
+export async function embed(text) {
   try {
-    if (provider === 'openai') {
-      const response = await axios.post(
-        'https://api.openai.com/v1/embeddings',
-        {
-          input: text,
-          model: 'text-embedding-3-small'
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      return response.data.data[0].embedding;
-    }
-    
-    throw new Error(`Unsupported embedding provider: ${provider}`);
+    const extractor = await getExtractor();
+    const output = await extractor(text, { pooling: 'mean', normalize: true });
+    return Array.from(output.data); // Array of 384 floats
   } catch (error) {
-    console.error('[Embedding API Error]', error.response?.data || error.message);
-    throw new Error('Failed to generate embedding.');
+    console.error('[Embeddings Error]:', error.message);
+    throw error;
+  }
+}
+
+export async function embedBatch(texts) {
+  try {
+    const extractor = await getExtractor();
+    const results = [];
+    for (const text of texts) {
+      const output = await extractor(text, { pooling: 'mean', normalize: true });
+      results.push(Array.from(output.data));
+    }
+    return results; // Array of arrays, each 384 floats
+  } catch (error) {
+    console.error('[Batch Embeddings Error]:', error.message);
+    throw error;
   }
 }

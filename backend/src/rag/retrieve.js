@@ -1,22 +1,18 @@
-import { embedText } from '../services/external/embeddings.adapter.js';
+import { query } from '../db/connection.js';
 
-/**
- * Retrieves the top-k most similar note chunks for a given question.
- * 
- * @param {string} question - The user's query.
- * @param {number} topK - Number of chunks to retrieve.
- * @returns {Promise<Array>} - Retrieved chunks with their metadata.
- */
-export async function retrieveRelevantChunks(question, topK = 5) {
-  // 1. Embed the question
-  const queryEmbedding = await embedText(question);
-  
-  // 2. Perform cosine similarity search (pgvector)
-  // TODO: Implement actual pgvector query using Drizzle ORM
-  // Example SQL: SELECT id, note_id, chunk_text FROM note_chunks ORDER BY embedding <=> queryEmbedding LIMIT topK;
-  
-  return [
-    { note_id: 1, chunk_text: "Stub context 1 related to the question." },
-    { note_id: 2, chunk_text: "Stub context 2 related to the question." }
-  ];
+export async function retrieveTopChunks(repoId, questionEmbedding, k = 5) {
+  const vectorString = `[${questionEmbedding.join(',')}]`;
+
+  // pgvector <=> is cosine distance. 
+  // We want the smallest distance (most similar).
+  const sql = `
+    SELECT id, chunk_index, chunk_text, (embedding <=> $2) AS distance
+    FROM repo_chunks
+    WHERE repo_id = $1
+    ORDER BY distance ASC
+    LIMIT $3
+  `;
+
+  const result = await query(sql, [repoId, vectorString, k]);
+  return result.rows;
 }

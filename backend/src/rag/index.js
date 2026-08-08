@@ -1,37 +1,53 @@
-import { chunkNoteContent } from './ingest.js';
-import { embedChunks } from './embed.js';
-import { retrieveRelevantChunks } from './retrieve.js';
-import { generateAnswer } from './generate.js';
+import { chunkText } from './ingest.js';
+import { embedAndStoreChunks } from './embed.js';
+import { retrieveTopChunks } from './retrieve.js';
+import { generateGroundedAnswer } from './generate.js';
+import { embed } from '../services/external/embeddings.adapter.js';
+import { fetchReadme } from '../services/external/github.adapter.js';
+import { query } from '../db/connection.js';
 
-/**
- * Orchestrates the ingestion of a newly saved/updated note.
- * 
- * @param {Object} note - The note object.
- */
-export async function ingestNote(note) {
-  // 1. Chunking
-  const chunks = chunkNoteContent(note.content);
-  
-  // 2. Embedding
-  const embeddedChunks = await embedChunks(chunks);
-  
-  // 3. Database Insertion
-  // TODO: Insert into `note_chunks` using Drizzle
-  console.log(`Ingested note ${note.id} into ${embeddedChunks.length} chunks.`);
+export async function ingestReadme(repoId, owner, name) {
+  try {
+    const readmeContent = await fetchReadme(owner, name);
+    
+    // Save raw readme to db just in case
+    await query('UPDATE tracked_repos SET readme_content = $1 WHERE id = $2', [readmeContent, repoId]);
+    
+    // Clear existing chunks for this repo if re-ingesting
+    await query('DELETE FROM repo_chunks WHERE repo_id = $1', [repoId]);
+
+    const chunks = chunkText(readmeContent, 500);
+    await embedAndStoreChunks(repoId, chunks);
+
+    await query('UPDATE tracked_repos SET last_embedded = NOW() WHERE id = $1', [repoId]);
+    return true;
+  } catch (err) {
+    console.error('[RAG Ingest] Error:', err.message);
+    throw err;
+  }
 }
 
-/**
- * Orchestrates the full RAG pipeline for a user question.
- * 
- * @param {string} question - The natural language query.
- * @returns {Promise<{answer: string, citations: Array}>}
- */
-export async function queryRAG(question) {
-  // 1. Retrieve
-  const contexts = await retrieveRelevantChunks(question);
-  
-  // 2. Generate
-  const result = await generateAnswer(question, contexts);
-  
-  return result;
+export async function queryRAG(repoId, question) {
+  try {
+    const questionEmbedding = await embed(question);
+    
+    const topChunks = await retrieveTopChunks(repoId, questionEmbedding, 5);
+    
+    const answer = await generateGroundedAnswer(question, topChunks);
+    
+    const sourceChunkIds = topChunks.map(c => c.id);
+    const sourceChunkTexts = topChunks.map(c => c.chunk_text);
+
+    // Log to chat_history
+    const sql = `
+      INSERT INTO chat_history (repo_id, user_question, assistant_answer, source_chunk_ids)
+      VALUES ($1, $2, $3, $4)
+    `;
+    await query(sql, [repoId, question, answer, sourceChunkIds]);
+
+    return { answer, sourceChunkIds, sourceChunkTexts };
+  } catch (err) {
+    console.error('[RAG Query] Error:', err.message);
+    throw err;
+  }
 }
