@@ -1,29 +1,55 @@
 -- database/schema.sql
 
--- Enable pgvector extension
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- Notes Table
-CREATE TABLE IF NOT EXISTS notes (
-  id SERIAL PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  content TEXT NOT NULL,
-  tags TEXT[] DEFAULT '{}',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE tracked_repos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  repo_url VARCHAR(255) UNIQUE NOT NULL,
+  repo_name VARCHAR(255) NOT NULL,
+  owner VARCHAR(255) NOT NULL,
+  repo_slug VARCHAR(255) NOT NULL,
+  readme_content TEXT,
+  last_fetched TIMESTAMP,
+  last_embedded TIMESTAMP,
+  commit_count INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
 );
+CREATE INDEX idx_tracked_repos_repo_url ON tracked_repos(repo_url);
 
--- Note Chunks Table for Vector Embeddings
-CREATE TABLE IF NOT EXISTS note_chunks (
-  id SERIAL PRIMARY KEY,
-  note_id INTEGER NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
+CREATE TABLE repo_chunks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  repo_id UUID NOT NULL REFERENCES tracked_repos(id) ON DELETE CASCADE,
+  chunk_index INT NOT NULL,
   chunk_text TEXT NOT NULL,
-  -- We use 1536 dimensions as it's the standard for OpenAI's text-embedding-3-small
+  source_section VARCHAR(255),
   embedding vector(1536),
-  chunk_index INTEGER NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  embedded_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW()
 );
+CREATE INDEX idx_repo_chunks_repo_id ON repo_chunks(repo_id);
+CREATE INDEX idx_repo_chunks_embedding ON repo_chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 
--- Index for similarity search
--- Adjust index type depending on your dataset size (e.g. HNSW or IVFFlat)
--- CREATE INDEX ON note_chunks USING hnsw (embedding vector_cosine_ops);
+CREATE TABLE commit_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  repo_id UUID NOT NULL REFERENCES tracked_repos(id) ON DELETE CASCADE,
+  commit_hash VARCHAR(255) NOT NULL,
+  author_name VARCHAR(255),
+  author_email VARCHAR(255),
+  commit_message TEXT,
+  committed_at TIMESTAMP,
+  fetched_at TIMESTAMP DEFAULT NOW()
+);
+CREATE INDEX idx_commit_logs_repo_id ON commit_logs(repo_id);
+CREATE INDEX idx_commit_logs_committed_at ON commit_logs(committed_at DESC);
+CREATE UNIQUE INDEX idx_commit_logs_unique ON commit_logs(repo_id, commit_hash);
+
+CREATE TABLE chat_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  repo_id UUID NOT NULL REFERENCES tracked_repos(id) ON DELETE CASCADE,
+  user_question TEXT NOT NULL,
+  assistant_answer TEXT,
+  source_chunk_ids UUID[] DEFAULT ARRAY[]::UUID[],
+  created_at TIMESTAMP DEFAULT NOW()
+);
+CREATE INDEX idx_chat_history_repo_id ON chat_history(repo_id);
