@@ -1,7 +1,5 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
 import pkg from 'pg';
 import dotenv from 'dotenv';
-
 dotenv.config();
 
 const { Pool } = pkg;
@@ -10,9 +8,16 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// We use Drizzle ORM as the query builder layer. It provides type-safety,
-// SQL-like syntax, and works well with pgvector compared to heavy ORMs like Prisma 
-// or writing raw SQL queries.
-export const db = drizzle(pool);
+export const query = (text, params) => pool.query(text, params);
 
-export default db;
+// Basic connection test
+pool.query('SELECT 1', (err) => {
+  if (err) {
+    console.error('[DB] Connection failed:', err.message);
+    process.exit(1);
+  } else {
+    console.log('[DB] Connected to PostgreSQL');
+  }
+});
+
+export default pool;
