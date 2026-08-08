@@ -4,7 +4,7 @@ CREATE TABLE repo_chunks (
   chunk_index INT NOT NULL,
   chunk_text TEXT NOT NULL,
   source_section VARCHAR(255),
-  embedding vector(1536),
+  embedding vector(384),
   embedded_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW(),
   CONSTRAINT repo_chunks_repo_fk FOREIGN KEY (repo_id) REFERENCES tracked_repos(id)

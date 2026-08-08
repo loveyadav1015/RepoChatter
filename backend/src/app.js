@@ -1,26 +1,21 @@
 import express from 'express';
 import cors from 'cors';
-import notesRoutes from './routes/notes.routes.js';
-import ragRoutes from './routes/rag.routes.js';
+import { validateEnv } from './config/env.js';
+import reposRoutes from './routes/repos.routes.js';
+import healthRoutes from './routes/health.routes.js';
+import errorHandler from './middleware/errorHandler.js';
+
+// Ensure environment is valid before booting app
+validateEnv();
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'OverEngineered API is running' });
-});
+app.use('/api/repos', reposRoutes);
+app.use('/api/health', healthRoutes);
 
-app.use('/api/notes', notesRoutes);
-app.use('/api/rag', ragRoutes);
-
-// Global Error Handler
-app.use((err, req, res, next) => {
-  console.error('[Global Error]', err.stack);
-  res.status(500).json({ error: 'Internal Server Error', message: err.message });
-});
+app.use(errorHandler);
 
 export default app;
