@@ -1,5 +1,5 @@
 import * as reposService from '../services/repos.service.js';
-import { queryRAG } from '../rag/index.js';
+import { queryRAG, ingestReadme } from '../rag/index.js';
 
 export async function addRepo(req, res, next) {
   try {
@@ -7,9 +7,24 @@ export async function addRepo(req, res, next) {
     if (!repoUrl) return res.status(400).json({ error: 'repoUrl is required' });
     
     const repo = await reposService.addRepo(repoUrl);
-    res.status(201).json(repo);
+
+    // MUST be awaited — if this throws, the client needs to know ingestion failed
+    try {
+      await ingestReadme(repo.id, repo.owner, repo.repo_name);
+    } catch (ingestErr) {
+      console.error('[addRepo] Ingestion failed for repo', repo.id, ingestErr.message);
+      return res.status(201).json({
+        ...repo,
+        warning: 'Repository added but README indexing failed. Chat may not work yet.'
+      });
+    }
+
+    // Re-fetch the repo so the response includes updated readme_content/last_embedded
+    const updatedRepo = await reposService.getRepoDetails(repo.id);
+    res.status(201).json(updatedRepo);
   } catch (err) {
-    next(err);
+    console.error('[addRepo] Failed:', err.message);
+    res.status(500).json({ message: 'Failed to add repository', error: err.message });
   }
 }
 
