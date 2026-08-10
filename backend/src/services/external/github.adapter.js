@@ -49,24 +49,37 @@ export async function fetchReadme(owner, name) {
   }
 }
 
-export async function fetchRecentCommits(owner, name, since = null) {
-  try {
-    const params = { per_page: 20 };
+export async function fetchRecentCommits(owner, name, since = null, maxCommits = 100) {
+  const allCommits = [];
+  let page = 1;
+  const perPage = 100; // GitHub's max allowed per_page
+
+  while (allCommits.length < maxCommits) {
+    const params = { per_page: perPage, page };
     if (since) {
       params.since = since instanceof Date ? since.toISOString() : new Date(since).toISOString();
     }
 
-    const res = await api.get(`/repos/${owner}/${name}/commits`, { params });
-    
-    return res.data.map(commitObj => ({
-      hash: commitObj.sha,
-      authorName: commitObj.commit.author.name,
-      authorEmail: commitObj.commit.author.email,
-      message: commitObj.commit.message.split('\n')[0], // First line only
-      committedAt: commitObj.commit.author.date,
-    }));
-  } catch (err) {
-    console.error(`[GitHub] Failed to fetch commits for ${owner}/${name}`, err.message);
-    return [];
+    try {
+      const response = await api.get(`/repos/${owner}/${name}/commits`, { params });
+
+      if (response.data.length === 0) break; // no more commits, stop paginating
+
+      allCommits.push(...response.data.map(commitObj => ({
+        hash: commitObj.sha,
+        authorName: commitObj.commit.author.name,
+        authorEmail: commitObj.commit.author.email,
+        message: commitObj.commit.message.split('\n')[0], // First line only
+        committedAt: commitObj.commit.author.date,
+      })));
+
+      if (response.data.length < perPage) break; // last page reached
+      page++;
+    } catch (err) {
+      console.error(`[GitHub] Failed to fetch commits for ${owner}/${name}`, err.message);
+      break;
+    }
   }
+
+  return allCommits.slice(0, maxCommits);
 }
