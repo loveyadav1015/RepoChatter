@@ -1,10 +1,13 @@
-import { pipeline } from '@xenova/transformers';
-
 let extractorInstance = null;
 
 async function getExtractor() {
   if (!extractorInstance) {
     console.log('[Embeddings] Loading local model Xenova/all-MiniLM-L6-v2 (384 dims)...');
+    const mod = await import('@xenova/transformers');
+    const pipeline = mod.pipeline || mod.default?.pipeline;
+    if (!pipeline) {
+      throw new Error('Could not resolve pipeline function from @xenova/transformers');
+    }
     extractorInstance = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
     console.log('[Embeddings] Local model loaded successfully.');
   }
