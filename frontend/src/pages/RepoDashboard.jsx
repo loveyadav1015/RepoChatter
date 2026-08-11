@@ -18,6 +18,7 @@ export default function RepoDashboard() {
   const [error, setError] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   
+  const pageRef = useGsapReveal('entrance');
   const headerRef = useGsapReveal('entrance');
   const chatRef = useGsapReveal('entrance');
 
@@ -53,32 +54,28 @@ export default function RepoDashboard() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen px-4 py-8 md:py-16 md:px-8 max-w-4xl mx-auto space-y-8">
-        <Skeleton className="h-8 w-32 bg-card" />
-        <div className="space-y-4">
-          <Skeleton className="h-12 w-3/4 bg-card" />
-          <Skeleton className="h-6 w-1/2 bg-card" />
-        </div>
-        <Skeleton className="h-[600px] w-full bg-card rounded-xl" />
-      </div>
-    );
-  }
-
-  if (error || !repo) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center space-y-4">
-        <p className="text-destructive font-medium">{error}</p>
-        <Button variant="outline" onClick={() => navigate('/')}>Return Home</Button>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen px-4 py-8 md:py-16 md:px-8 max-w-4xl mx-auto space-y-8">
-      
-      <div ref={headerRef} className="space-y-6">
+    <div 
+      ref={pageRef} 
+      className={`min-h-screen ${error || !repo && !loading ? 'flex flex-col items-center justify-center space-y-4' : 'px-4 py-8 md:py-16 md:px-8 max-w-4xl mx-auto space-y-8'}`}
+    >
+      {loading ? (
+        <>
+          <Skeleton className="h-8 w-32 bg-card" />
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-3/4 bg-card" />
+            <Skeleton className="h-6 w-1/2 bg-card" />
+          </div>
+          <Skeleton className="h-[600px] w-full bg-card rounded-xl" />
+        </>
+      ) : error || !repo ? (
+        <>
+          <p className="text-destructive font-medium">{error}</p>
+          <Button variant="outline" onClick={() => navigate('/')}>Return Home</Button>
+        </>
+      ) : (
+        <>
+          <div ref={headerRef} className="space-y-6">
         <Button variant="ghost" className="pl-0 hover:bg-transparent hover:text-foreground text-muted-foreground" onClick={() => navigate('/')}>
           <ArrowLeft className="w-4 h-4 mr-2" /> Back to Repos
         </Button>
@@ -143,7 +140,9 @@ export default function RepoDashboard() {
             </div>
           </ScrollArea>
         </div>
-      </div>
+        </div>
+        </>
+      )}
     </div>
   );
 }
