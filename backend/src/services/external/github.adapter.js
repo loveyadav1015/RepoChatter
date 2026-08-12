@@ -35,9 +35,20 @@ export function parseRepoUrl(url) {
 export async function fetchReadme(owner, name) {
   try {
     const res = await api.get(`/repos/${owner}/${name}/readme`);
-    // GitHub returns base64 encoded content
-    const content = Buffer.from(res.data.content, 'base64').toString('utf8');
-    return content;
+
+    // Normal case: GitHub returns base64-encoded content inline
+    if (res.data.encoding === 'base64' && res.data.content) {
+      return Buffer.from(res.data.content, 'base64').toString('utf8');
+    }
+
+    // Large file case: GitHub omits inline content, provides a download_url instead
+    if (res.data.download_url) {
+      const raw = await axios.get(res.data.download_url, { responseType: 'text' });
+      return raw.data;
+    }
+
+    // Neither content nor download_url present — genuinely unexpected response shape
+    throw new Error('README response had no usable content or download_url.');
   } catch (err) {
     if (err.response?.status === 404) {
       throw new Error('README not found for this repository.');
@@ -45,7 +56,10 @@ export async function fetchReadme(owner, name) {
     if (err.response?.status === 403) {
       throw new Error('GitHub API rate limit exceeded.');
     }
-    throw new Error('Failed to fetch README from GitHub.');
+    // Log and surface the REAL underlying error instead of a generic message —
+    // this is what was hiding the actual TypeError from Buffer.from(undefined, ...)
+    console.error(`[GitHub] fetchReadme unexpected error for ${owner}/${name}:`, err.message);
+    throw new Error(`Failed to fetch README from GitHub: ${err.message}`);
   }
 }
 
