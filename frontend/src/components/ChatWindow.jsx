@@ -12,16 +12,15 @@ export default function ChatWindow({ repoId }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const scrollRef = useRef(null);
+  const messagesEndRef = useRef(null);
   const { ref, onMouseMove } = useLocalGlow();
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   useEffect(() => {
-    if (scrollRef.current) {
-      const scrollViewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollViewport) {
-        scrollViewport.scrollTop = scrollViewport.scrollHeight;
-      }
-    }
+    scrollToBottom();
   }, [messages, loading]);
 
   const handleSubmit = async (e) => {
@@ -53,8 +52,8 @@ export default function ChatWindow({ repoId }) {
 
   return (
     <div className="flex flex-col h-[600px] bg-bg border border-border rounded-xl overflow-hidden relative">
-      <ScrollArea ref={scrollRef} className="flex-1 p-4">
-        <div className="max-w-3xl mx-auto">
+      <ScrollArea className="flex-1 min-h-0 p-4">
+        <div className="max-w-3xl mx-auto space-y-4">
           {messages.map((msg, i) => (
             <ChatMessage key={i} message={msg} />
           ))}
@@ -69,6 +68,7 @@ export default function ChatWindow({ repoId }) {
               </div>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
       
