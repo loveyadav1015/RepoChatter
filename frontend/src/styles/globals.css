@@ -5,9 +5,10 @@
 @layer base {
   :root {
     /* Base */
-    --color-bg: #000000;              /* pure black, the entire page background */
-    --color-bg-surface: #0A0A0A;      /* cards, panels — barely lighter than bg */
-    --color-bg-surface-hover: #141414; /* surface on hover, still very dark */
+    --color-bg: #0A0A0A;
+    --color-bg-surface: #141414;
+    --color-bg-gradient-center: #1A1A1A;
+    --color-bg-surface-hover: #141414;
 
     /* Text */
     --color-text-primary: #FFFFFF;     /* headings, primary content */
@@ -19,8 +20,8 @@
     --color-border-hover: #404040;     /* border on hover */
 
     /* Glow (the signature interaction) */
-    --color-glow: rgba(255, 255, 255, 0.15);   /* the cursor-follow glow itself */
-    --color-glow-strong: rgba(255, 255, 255, 0.3); /* glow on interactive elements (buttons, cards) */
+    --color-glow: rgba(255, 255, 255, 0.08);   /* the cursor-follow glow itself */
+    --color-glow-strong: rgba(255, 255, 255, 0.18); /* glow on interactive elements (buttons, cards) */
 
     /* Semantic — ONLY used for status, never decoration */
     --color-error: #EF4444;
@@ -93,6 +94,13 @@
   }
   body {
     background-color: var(--color-bg);
+    background-image: radial-gradient(
+      circle at 50% 50%,
+      var(--color-bg-gradient-center) 0%,
+      var(--color-bg) 60%
+    );
+    background-attachment: fixed;
+    min-height: 100vh;
     color: var(--color-text-primary);
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
@@ -165,17 +173,16 @@
 
 /* Alignment & Spacing Classes from Typography Polish */
 
-.hero-section {
+.title-section,
+.phone-analysis-section {
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: var(--color-bg);
-  padding-top: 64px;
-  padding-bottom: 64px;
+  background: transparent;
 }
 
 .hero-hand-phone-wrap {
@@ -206,29 +213,124 @@
   pointer-events: none;
 }
 
-.phone-mockup {
+.phone-frame-v2 {
   position: relative;
-  width: 280px;
-  height: 580px;
-  background: var(--color-phone-frame);
-  border-radius: 40px;
-  padding: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  width: 320px;
+  height: 640px;
+  border-radius: 48px;
+  background: linear-gradient(135deg, #3a3a3a, #1a1a1a 40%, #2a2a2a 100%);
+  padding: 14px;
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.7),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.05);
   z-index: 2;
   flex-shrink: 0;
 }
 
-.phone-screen {
+.phone-notch {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 28px;
+  background: #0a0a0a;
+  border-radius: 0 0 20px 20px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.phone-notch::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2a2a3a;
+}
+
+.phone-screen-v2 {
   width: 100%;
   height: 100%;
   background: var(--color-phone-screen);
-  border-radius: 28px;
+  border-radius: 36px;
   overflow: hidden;
+  position: relative;
+  padding: 48px 32px 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 0;
+}
+
+.phone-screen-v2::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.15), transparent);
+  pointer-events: none;
+}
+
+.phone-headline {
+  font-family: var(--font-serif);
+  font-weight: 800;
+  font-size: 2.25rem;
+  line-height: 1.1;
+  text-align: center;
+  color: var(--color-text-primary);
+  margin-top: 32px;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+/* Force dark text on the light phone screen */
+.phone-screen-v2 .phone-headline,
+.phone-screen-v2 .phone-subtext,
+.phone-screen-v2 .phone-form-label,
+.phone-screen-v2 .phone-footer {
+  color: #1a1a1a;
+}
+
+.phone-subtext {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  text-align: center;
+  line-height: 1.4;
+  margin-bottom: 32px;
+  color: #4a4a4a;
+}
+
+.phone-form-wrap {
+  width: 100%;
+  margin-bottom: auto;
+}
+
+.phone-form-label {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.phone-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #888888;
+}
+
+.phone-version {
+  font-size: 0.65rem;
+  opacity: 0.6;
 }
 
 .hero-title {
