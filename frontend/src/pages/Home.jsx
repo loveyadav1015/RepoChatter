@@ -62,7 +62,7 @@ export default function Home() {
   };
 
   return (
-    <div ref={containerRef} className="w-full relative z-10">
+    <div ref={containerRef} className="landing-bg w-full relative z-10">
       <div ref={section1Ref}><TitleSection /></div>
       <div ref={section2Ref}><PhoneAnalysisSection /></div>
       

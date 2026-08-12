@@ -94,6 +94,14 @@
   }
   body {
     background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .landing-bg {
+    background-color: var(--color-bg);
     background-image: radial-gradient(
       ellipse 80% 60% at 50% 50%,
       var(--color-bg-gradient-center) 0%,
@@ -101,10 +109,6 @@
     );
     background-attachment: fixed;
     min-height: 100vh;
-    color: var(--color-text-primary);
-    font-family: var(--font-body);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
