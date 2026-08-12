@@ -4,8 +4,10 @@ import AddRepoForm from '../AddRepoForm';
 export default function PhoneAnalysisSection() {
   return (
     <section className="phone-analysis-section">
-      <GitGraphDoodle style={{ position: 'absolute', left: '5%', top: '20%', width: '180px' }} />
-      <GitGraphDoodle style={{ position: 'absolute', right: '5%', top: '20%', width: '180px' }} flipped />
+      <GitGraphDoodle variant="top-left" style={{ left: '4%', top: '5%', width: '160px' }} />
+      <GitGraphDoodle variant="top-right" style={{ right: '4%', top: '15%', width: '200px' }} />
+      <GitGraphDoodle variant="bottom-left" style={{ left: '8%', bottom: '5%', width: '180px' }} />
+      <GitGraphDoodle variant="bottom-right" style={{ right: '8%', bottom: '10%', width: '160px' }} />
 
       <div className="phone-frame-v2">
         <div className="phone-notch" />
