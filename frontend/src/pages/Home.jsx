@@ -7,6 +7,8 @@ import RepoList from '../components/RepoList';
 
 import TitleSection from '../components/landing/TitleSection';
 import PhoneAnalysisSection from '../components/landing/PhoneAnalysisSection';
+import Navbar from '../components/Navbar';
+import CursorGlow from '../components/CursorGlow';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -63,6 +65,8 @@ export default function Home() {
 
   return (
     <div ref={containerRef} className="landing-bg w-full relative z-10">
+      <CursorGlow />
+      <Navbar />
       <div ref={section1Ref}><TitleSection /></div>
       <div ref={section2Ref}><PhoneAnalysisSection /></div>
       

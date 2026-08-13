@@ -27,7 +27,12 @@ export default function AddRepoForm({
       const res = await repos.add(url);
       navigate(`/repos/${res.data.id}`);
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to add repository');
+      if (err.response?.status === 401) {
+        toast.error('Please log in to add a repository.');
+        navigate('/login');
+      } else {
+        toast.error(err.response?.data?.message || 'Failed to add repository.');
+      }
     } finally {
       setLoading(false);
     }

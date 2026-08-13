@@ -8,6 +8,7 @@ export function validateEnv() {
   const required = [
     'DATABASE_URL',
     'GROQ_API_KEY',
+    'JWT_SECRET',
     'PORT'
   ];
 
