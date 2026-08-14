@@ -1,6 +1,7 @@
 import { useGsapStagger } from '../hooks/useGsapReveal';
 import RepoCard from './RepoCard';
 import { Skeleton } from './ui/skeleton';
+import MagneticWrapper from './MagneticWrapper';
 
 export default function RepoList({ repos, loading }) {
   useGsapStagger('.repo-card-item');
@@ -26,9 +27,11 @@ export default function RepoList({ repos, loading }) {
   return (
     <div className="repo-grid">
       {repos.map((repo) => (
-        <div key={repo.id} className="repo-card-item">
-          <RepoCard repo={repo} />
-        </div>
+        <MagneticWrapper key={repo.id} strength={20} className="repo-card-item w-full h-full flex">
+          <div className="w-full">
+            <RepoCard repo={repo} />
+          </div>
+        </MagneticWrapper>
       ))}
     </div>
   );

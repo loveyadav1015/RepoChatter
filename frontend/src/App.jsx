@@ -4,10 +4,12 @@ import Home from './pages/Home';
 import RepoDashboard from './pages/RepoDashboard';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import CursorCompanion from './components/shared/CursorCompanion';
 
 export default function App() {
   return (
     <BrowserRouter>
+      <CursorCompanion />
       <Toaster theme="dark" position="bottom-right" />
       <Routes>
         <Route path="/" element={<Home />} />

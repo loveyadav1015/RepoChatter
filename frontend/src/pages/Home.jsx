@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { repos } from '../services/api';
@@ -15,6 +15,7 @@ gsap.registerPlugin(ScrollTrigger);
 export default function Home() {
   const [repoData, setRepoData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [entranceDone, setEntranceDone] = useState(false);
 
   const containerRef = useRef(null);
   const section1Ref = useRef(null);
@@ -63,11 +64,17 @@ export default function Home() {
     }
   };
 
+  const handleEntranceComplete = useCallback(() => {
+    setEntranceDone(true);
+  }, []);
+
   return (
     <div ref={containerRef} className="landing-bg w-full relative z-10">
       <CursorGlow />
-      <Navbar />
-      <div ref={section1Ref}><TitleSection /></div>
+      <div className={`transition-opacity duration-1000 ${entranceDone ? 'opacity-100' : 'opacity-0'}`}>
+        <Navbar />
+      </div>
+      <div ref={section1Ref}><TitleSection onComplete={handleEntranceComplete} /></div>
       <div ref={section2Ref}><PhoneAnalysisSection /></div>
       
       <main className="repo-list-container px-4 py-16 md:py-24 md:px-8 max-w-5xl mx-auto relative z-40 bg-transparent">

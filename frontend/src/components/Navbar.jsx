@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { useEffect, useState } from 'react';
+import MagneticWrapper from './MagneticWrapper';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -31,9 +32,11 @@ export default function Navbar() {
 
   return (
     <nav className="w-full bg-transparent px-4 md:px-8 h-16 flex items-center justify-between">
-      <Link to="/" className="font-serif font-bold text-xl text-foreground">
-        RepoChatter
-      </Link>
+      <MagneticWrapper strength={30}>
+        <Link to="/" className="font-serif font-bold text-xl text-foreground">
+          RepoChatter
+        </Link>
+      </MagneticWrapper>
       
       <div className="flex items-center gap-4">
         {user ? (
@@ -47,12 +50,16 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            <Link to="/login">
-              <Button variant="ghost" size="sm">Login</Button>
-            </Link>
-            <Link to="/signup">
-              <Button size="sm">Sign Up</Button>
-            </Link>
+            <MagneticWrapper strength={30}>
+              <Link to="/login">
+                <Button variant="ghost" size="sm">Login</Button>
+              </Link>
+            </MagneticWrapper>
+            <MagneticWrapper strength={30}>
+              <Link to="/signup">
+                <Button size="sm">Sign Up</Button>
+              </Link>
+            </MagneticWrapper>
           </>
         )}
       </div>
