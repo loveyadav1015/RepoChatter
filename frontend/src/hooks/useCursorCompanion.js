@@ -26,6 +26,7 @@ export function useCursorCompanion() {
     const pos = { x: mouse.x, y: mouse.y };
     let caughtSince = null;
     let walkPhase = 0;
+    let lastScrollY = window.scrollY;
 
     function handleMouseMove(e) {
       mouse.x = e.clientX;
@@ -40,7 +41,27 @@ export function useCursorCompanion() {
         setAsleep(false);
       }
     }
-    window.addEventListener('mousemove', handleMouseMove);
+
+    function handleScroll() {
+      const currentScrollY = window.scrollY;
+      const deltaY = currentScrollY - lastScrollY;
+      
+      // Drag the companion's current position opposite to the scroll direction
+      // so it appears stuck to the page and has to catch back up to the cursor
+      pos.y -= deltaY;
+      lastScrollY = currentScrollY;
+      
+      // Wake it up if it gets dragged far enough away from the mouse
+      const dx = mouse.x - pos.x;
+      const dy = mouse.y - pos.y;
+      if (Math.sqrt(dx * dx + dy * dy) > WAKE_DISTANCE && asleepRef.current) {
+        caughtSince = null;
+        setAsleep(false);
+      }
+    }
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
     function tick() {
       const dx = mouse.x - pos.x;
@@ -81,6 +102,7 @@ export function useCursorCompanion() {
     gsap.ticker.add(tick);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('scroll', handleScroll);
       gsap.ticker.remove(tick);
     };
   }, []);

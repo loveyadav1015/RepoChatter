@@ -66,6 +66,7 @@ export default function Home() {
 
   const handleEntranceComplete = useCallback(() => {
     setEntranceDone(true);
+    window.dispatchEvent(new Event('entrance-complete'));
   }, []);
 
   return (
