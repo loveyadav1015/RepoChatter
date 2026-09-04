@@ -472,6 +472,3 @@ web/
 MIT
 
 ---
-
-**Built with Node.js, Express, React, PostgreSQL + pgvector, shadcn/ui, GSAP, Docker,
-and a lot of debugging.** 🎬
