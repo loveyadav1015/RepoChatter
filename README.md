@@ -128,7 +128,7 @@ docker compose up --build
 - Backend: http://localhost:4000
 - Database migrations run automatically on first start
 
----
+---x
 
 ## 🚀 Quick Start (Manual, No Docker)
 
