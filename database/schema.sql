@@ -15,6 +15,7 @@ CREATE TABLE tracked_repos (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
 CREATE INDEX idx_tracked_repos_repo_url ON tracked_repos(repo_url);
 
 CREATE TABLE repo_chunks (
