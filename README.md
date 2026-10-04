@@ -12,7 +12,6 @@ interface with a cursor-reactive glow and an illustrated scroll-triggered landin
 Built as a submission for **OverEngineered** — the Web Development Wing selection process.
 
 ---
-
 ## 🎯 Features
 
 - **📚 Add Any Public Repo** — paste a GitHub URL, README is fetched and indexed automatically
